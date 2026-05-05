@@ -2,26 +2,25 @@
 
 A [MagicMirror²](https://magicmirror.builders) module that shows and hides
 private modules based on whether your phone is present on the home network.
+(think Stocktacker, emails, appointment calendars...)
 
-When nobody is home, configured private modules are hidden. When a phone is
-detected, they reappear. No external scripts or services required — everything
+When nobody is home, all configured private modules are hidden. When any phone is
+detected and confirmed, they reappear. No external scripts or services required — everything
 runs inside MagicMirror.
 
 ## How it works
 
-The module polls your network by pinging each phone's fixed IP address. If the
-ping succeeds and the MAC address matches, the phone is considered home. If all
-phones are away, private modules are hidden. A sleeping phone that doesn't
-respond to ping is caught via the ARP cache as a fallback.
+The module polls your network by going through a list and pinging each phone's fixed IP address. 
+If the ping succeeds, the phone is considered home (I do NOT check the MAC address!)
+If all phones are away, private modules are hidden. 
+A sleeping phone that doesn't respond to ping is caught via the ARP cache as a fallback.
 
 ## Installation
 
 ```bash
 cd ~/MagicMirror/modules
-git clone https://github.com/YOUR_USERNAME/MMM-ShowOnlyIfHome
+git clone https://github.com/amanzimdwini/MMM-ShowOnlyIfHome
 ```
-
-No `npm install` needed — the module uses only Node.js built-ins.
 
 ## Phone setup (required)
 
@@ -52,7 +51,7 @@ Add to `config/config.js`:
     ],
 
     // Modules to hide when nobody is home
-    privateModules: ["MMM-WeatherGraph", "MMM-RAIN-MAP"],
+    privateModules: ["MMM-Secret1", "MMM-Secret2"],
 
     pollInterval:   300,    // seconds between checks (default: 300 = 5 min)
     animationSpeed: 1000,   // ms for show/hide fade (default: 1000)
@@ -87,7 +86,7 @@ When `showStatus: true`, a small line appears at the configured position:
 📵 Alice: away | Bob: away  (14:35)
 ```
 
-Set `showStatus: false` to hide it once everything is working.
+Set `showStatus: false` to hide this line.
 
 ## License
 
