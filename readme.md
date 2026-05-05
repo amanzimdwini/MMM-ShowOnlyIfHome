@@ -1,10 +1,10 @@
 # MMM-ShowOnlyIfHome
 
 A [MagicMirror²](https://magicmirror.builders) module that shows and hides
-private modules based on whether your phone is present on the home network.
-(think Stocktackers, emails, appointment calendars ...)
+ modules deemed PRIVATE (think Stocktackers, emails, appointment calendars ...)
+ based on whether your phone is present on the home network.
 
-When nobody is home, all configured private modules are hidden. 
+When nobody is home, all modules deemed private are hidden. 
 When any phone in a list is detected, they reappear. 
 No external scripts or services required — everything runs inside MagicMirror.
 
@@ -78,7 +78,7 @@ Add to `config/config.js`:
 | `phones` | `[]` | Array of phones to monitor. Each entry needs `ip` and `mac` (strongly recommended for security); `name` is optional. |
 | `privateModules` | `[]` | Module names to hide when nobody is home. |
 | `pollInterval` | `300` | Seconds between network checks. |
-| `animationSpeed` | `1000` | Fade duration in milliseconds. |
+| `animationSpeed` | `1000` | Fade duration for private modules in milliseconds. |
 | `showStatus` | `true` | Display the status line. Set to `false` to run silently. |
 
 ### Finding your MAC address
