@@ -33,7 +33,7 @@ module.exports = NodeHelper.create({
   },
 
   _poll() {
-    const self   = this;   // captured once here, used throughout
+    const self   = this;
     const phones = this.config.phones || [];
 
     if (phones.length === 0) {
@@ -68,51 +68,76 @@ module.exports = NodeHelper.create({
         self._checkArp(phone, callback);
         return;
       }
-      // Ping OK — verify MAC if one is configured
+      // Ping succeeded — MAC verification is mandatory if a MAC is configured
       self._verifyMac(phone, callback);
     });
   },
 
-  _verifyMac(phone, callback) {
-    const placeholder = "aa:bb:cc:dd:ee:ff";
-    const expected    = phone.mac
-      ? phone.mac.toLowerCase().replace(/-/g, ":")
-      : placeholder;
+  _normaliseMac(mac) {
+    return mac.toLowerCase().replace(/-/g, ":");
+  },
 
-    if (expected === placeholder) {
-      callback(true);   // no MAC configured — trust the ping
+  _isPlaceholder(mac) {
+    // Any MAC that is clearly a placeholder/unconfigured value
+    const placeholders = ["aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"];
+    return placeholders.indexOf(mac) !== -1;
+  },
+
+  _verifyMac(phone, callback) {
+    // If no MAC configured, or it's a placeholder, trust the ping
+    if (!phone.mac) {
+      console.warn("[MMM-ShowOnlyIfHome] " + phone.name + " has no MAC configured — trusting ping (not secure).");
+      callback(true);
+      return;
+    }
+
+    const expected = this._normaliseMac(phone.mac);
+
+    if (this._isPlaceholder(expected)) {
+      console.warn("[MMM-ShowOnlyIfHome] " + phone.name + " has placeholder MAC — trusting ping (not secure).");
+      callback(true);
       return;
     }
 
     exec("arp -a " + phone.ip, function(error, stdout) {
       if (error || !stdout) {
-        callback(true);   // can't verify — trust the ping
+        // ARP lookup failed — deny, don't assume
+        console.warn("[MMM-ShowOnlyIfHome] ARP lookup failed for " + phone.ip + " — denying.");
+        callback(false);
         return;
       }
+
       const match = stdout.match(/([\da-fA-F]{2}[:\-]){5}[\da-fA-F]{2}/);
       if (!match) {
-        callback(true);
+        // No MAC in ARP output — deny, don't assume
+        console.warn("[MMM-ShowOnlyIfHome] No MAC found in ARP output for " + phone.ip + " — denying.");
+        callback(false);
         return;
       }
+
       const found = match[0].toLowerCase().replace(/-/g, ":");
       if (found === expected) {
+        console.log("[MMM-ShowOnlyIfHome] " + phone.name + " MAC verified ✓");
         callback(true);
       } else {
         console.warn("[MMM-ShowOnlyIfHome] Wrong device at " + phone.ip +
-          " — expected " + expected + " got " + found);
+          " — expected " + expected + " got " + found + " — denying.");
         callback(false);
       }
     });
   },
 
   _checkArp(phone, callback) {
-    const placeholder = "aa:bb:cc:dd:ee:ff";
-    const expected    = phone.mac
-      ? phone.mac.toLowerCase().replace(/-/g, ":")
-      : placeholder;
+    // Fallback for sleeping phones — search entire ARP cache for MAC
+    if (!phone.mac) {
+      callback(false);
+      return;
+    }
 
-    if (expected === placeholder) {
-      callback(false);   // no MAC to search for
+    const expected = this._normaliseMac(phone.mac);
+
+    if (this._isPlaceholder(expected)) {
+      callback(false);   // no reliable MAC to search for
       return;
     }
 
@@ -123,7 +148,7 @@ module.exports = NodeHelper.create({
       }
       const found = stdout.toLowerCase().indexOf(expected) !== -1;
       if (found) {
-        console.log("[MMM-ShowOnlyIfHome] " + phone.name + " found in ARP cache (sleeping).");
+        console.log("[MMM-ShowOnlyIfHome] " + phone.name + " found in ARP cache (sleeping) ✓");
       }
       callback(found);
     });
@@ -137,7 +162,7 @@ module.exports = NodeHelper.create({
 
     results.forEach(function(r) {
       console.log("[MMM-ShowOnlyIfHome] " + r.phone.name +
-        " (" + r.phone.ip + "): " + (r.home ? "HOME" : "away"));
+        " (" + r.phone.ip + "): " + (r.home ? "HOME ✓" : "away"));
     });
 
     this.anyoneHome  = anyoneHome;
@@ -151,7 +176,6 @@ module.exports = NodeHelper.create({
       })
     });
 
-    // Schedule next poll
     const interval = (this.config.pollInterval || 300) * 1000;
     this.timer     = setTimeout(function() { self._poll(); }, interval);
   },

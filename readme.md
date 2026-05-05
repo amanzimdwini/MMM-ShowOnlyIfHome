@@ -2,18 +2,23 @@
 
 A [MagicMirror²](https://magicmirror.builders) module that shows and hides
 private modules based on whether your phone is present on the home network.
-(think Stocktacker, emails, appointment calendars...)
+(think Stocktackers, emails, appointment calendars ...)
 
-When nobody is home, all configured private modules are hidden. When any phone is
-detected and confirmed, they reappear. No external scripts or services required — everything
-runs inside MagicMirror.
+When nobody is home, all configured private modules are hidden. 
+When any phone in a list is detected, they reappear. 
+No external scripts or services required — everything runs inside MagicMirror.
 
 ## How it works
 
-The module polls your network by going through a list and pinging each phone's fixed IP address. 
-If the ping succeeds, the phone is considered home (I do NOT check the MAC address!)
-If all phones are away, private modules are hidden. 
-A sleeping phone that doesn't respond to ping is caught via the ARP cache as a fallback.
+The module polls your network by going through a list of phones and pinging 
+each phone's fixed IP address. If the ping succeeds, the phone's MAC address 
+is checked. If it matches, the phone is considered "home" and the private 
+modules are displayed. If all phones are away or fail the MAC check, the 
+private modules are hidden.
+
+A sleeping phone that doesn't respond to ping is caught via the ARP cache as
+a fallback — the MAC is verified there too, so a wrong device cannot
+impersonate a known phone and gain a "home" result.
 
 ## Installation
 
