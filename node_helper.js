@@ -1,5 +1,5 @@
 /**
- * MMM-ShowIfHome — node_helper.js
+ * MMM-ShowOnlyIfHome — node_helper.js
  *
  * Polls the network for configured phones and notifies the frontend
  * to show or hide private modules accordingly.
@@ -16,7 +16,7 @@ const os         = require("os");
 module.exports = NodeHelper.create({
 
   start() {
-    console.log("[MMM-ShowIfHome] node_helper starting...");
+    console.log("[MMM-ShowOnlyIfHome] node_helper starting...");
     this.config      = null;
     this.anyoneHome  = false;
     this.phonesFound = 0;
@@ -26,18 +26,18 @@ module.exports = NodeHelper.create({
   socketNotificationReceived(notification, payload) {
     if (notification === "FRONTEND_READY") {
       this.config = payload.config;
-      console.log("[MMM-ShowIfHome] Config received. Phones:", JSON.stringify(this.config.phones));
-      console.log("[MMM-ShowIfHome] Poll interval:", this.config.pollInterval, "seconds");
+      console.log("[MMM-ShowOnlyIfHome] Config received. Phones:", JSON.stringify(this.config.phones));
+      console.log("[MMM-ShowOnlyIfHome] Poll interval:", this.config.pollInterval, "seconds");
       this._poll();
     }
   },
 
   _poll() {
-    const self   = this;
+    const self   = this;   // captured once here, used throughout
     const phones = this.config.phones || [];
 
     if (phones.length === 0) {
-      console.warn("[MMM-ShowIfHome] No phones configured.");
+      console.warn("[MMM-ShowOnlyIfHome] No phones configured.");
       return;
     }
 
@@ -56,6 +56,7 @@ module.exports = NodeHelper.create({
   },
 
   _pingPhone(phone, callback) {
+    const self  = this;
     const isWin = os.platform() === "win32";
     const cmd   = isWin
       ? "ping -n 1 -w 1000 " + phone.ip
@@ -68,8 +69,8 @@ module.exports = NodeHelper.create({
         return;
       }
       // Ping OK — verify MAC if one is configured
-      this._verifyMac(phone, callback);
-    }.bind(this));
+      self._verifyMac(phone, callback);
+    });
   },
 
   _verifyMac(phone, callback) {
@@ -97,7 +98,7 @@ module.exports = NodeHelper.create({
       if (found === expected) {
         callback(true);
       } else {
-        console.warn("[MMM-ShowIfHome] Wrong device at " + phone.ip +
+        console.warn("[MMM-ShowOnlyIfHome] Wrong device at " + phone.ip +
           " — expected " + expected + " got " + found);
         callback(false);
       }
@@ -122,19 +123,20 @@ module.exports = NodeHelper.create({
       }
       const found = stdout.toLowerCase().indexOf(expected) !== -1;
       if (found) {
-        console.log("[MMM-ShowIfHome] " + phone.name + " found in ARP cache (sleeping).");
+        console.log("[MMM-ShowOnlyIfHome] " + phone.name + " found in ARP cache (sleeping).");
       }
       callback(found);
     });
   },
 
   _handleResults(results) {
+    const self        = this;
     const homePhones  = results.filter(function(r) { return r.home; });
     const anyoneHome  = homePhones.length > 0;
     const phonesFound = homePhones.length;
 
     results.forEach(function(r) {
-      console.log("[MMM-ShowIfHome] " + r.phone.name +
+      console.log("[MMM-ShowOnlyIfHome] " + r.phone.name +
         " (" + r.phone.ip + "): " + (r.home ? "HOME" : "away"));
     });
 
@@ -150,13 +152,12 @@ module.exports = NodeHelper.create({
     });
 
     // Schedule next poll
-    const self     = this;
     const interval = (this.config.pollInterval || 300) * 1000;
     this.timer     = setTimeout(function() { self._poll(); }, interval);
   },
 
   stop() {
-    console.log("[MMM-ShowIfHome] Stopping.");
+    console.log("[MMM-ShowOnlyIfHome] Stopping.");
     if (this.timer) clearTimeout(this.timer);
   }
 

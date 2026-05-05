@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────
-// MMM-ShowIfHome — paste this block into your config/config.js
+// MMM-ShowOnlyIfHome — paste this block into your config/config.js
 //
 // BEFORE PUBLISHING / MOVING TO PI:
 //   - Replace IPs and MACs with your real values
@@ -8,7 +8,7 @@
 //   - Set showStatus: false once you're happy it's working
 // ─────────────────────────────────────────────────────────────────
 {
-  module: "MMM-ShowIfHome",
+  module: "MMM-ShowOnlyIfHome",
   position: "bottom_center",
   config: {
 

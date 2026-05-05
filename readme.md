@@ -1,4 +1,4 @@
-# MMM-ShowIfHome
+# MMM-ShowOnlyIfHome
 
 A [MagicMirror²](https://magicmirror.builders) module that shows and hides
 private modules based on whether your phone is present on the home network.
@@ -18,7 +18,7 @@ respond to ping is caught via the ARP cache as a fallback.
 
 ```bash
 cd ~/MagicMirror/modules
-git clone https://github.com/amanzimdwini/MMM-ShowIfHome
+git clone https://github.com/YOUR_USERNAME/MMM-ShowOnlyIfHome
 ```
 
 No `npm install` needed — the module uses only Node.js built-ins.
@@ -41,7 +41,7 @@ Add to `config/config.js`:
 
 ```javascript
 {
-  module: "MMM-ShowIfHome",
+  module: "MMM-ShowOnlyIfHome",
   position: "bottom_center",
   config: {
 
@@ -52,7 +52,7 @@ Add to `config/config.js`:
     ],
 
     // Modules to hide when nobody is home
-    privateModules: ["MMM-Secret", "MMM-Secret2"],
+    privateModules: ["MMM-WeatherGraph", "MMM-RAIN-MAP"],
 
     pollInterval:   300,    // seconds between checks (default: 300 = 5 min)
     animationSpeed: 1000,   // ms for show/hide fade (default: 1000)

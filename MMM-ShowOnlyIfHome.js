@@ -1,5 +1,5 @@
 /**
- * MMM-ShowIfHome
+ * MMM-ShowOnlyIfHome
  *
  * MagicMirror module that shows/hides private modules based on
  * whether configured phones are present on the local network.
@@ -7,7 +7,7 @@
  * See README.md for full setup instructions.
  */
 
-Module.register("MMM-ShowIfHome", {
+Module.register("MMM-ShowOnlyIfHome", {
 
   defaults: {
     phones:         [],
@@ -18,7 +18,7 @@ Module.register("MMM-ShowIfHome", {
   },
 
   start() {
-    Log.info("[MMM-ShowIfHome] Started.");
+    Log.info("[MMM-ShowOnlyIfHome] Started.");
     this.anyoneHome   = false;
     this.phonesFound  = 0;
     this.lastChecked  = null;
@@ -27,15 +27,20 @@ Module.register("MMM-ShowIfHome", {
 
   notificationReceived(notification) {
     if (notification === "ALL_MODULES_STARTED") {
-      Log.info("[MMM-ShowIfHome] Applying safe default (hide) and starting poller.");
-      setTimeout(() => { this._applyPresence(false); }, 1000);
-      this.sendSocketNotification("FRONTEND_READY", { config: this.config });
+      Log.info("[MMM-ShowOnlyIfHome] Applying safe default (hide) and starting poller.");
+      // Hide immediately — don't wait for first poll result
+      this._applyPresence(false);
+      this.updateDom();
+      // Small delay before starting poller to let all modules settle
+      setTimeout(() => {
+        this.sendSocketNotification("FRONTEND_READY", { config: this.config });
+      }, 2000);
     }
   },
 
   socketNotificationReceived(notification, payload) {
     if (notification !== "PRESENCE_UPDATE") return;
-    Log.info("[MMM-ShowIfHome] Update — anyone_home=" + payload.anyone_home +
+    Log.info("[MMM-ShowOnlyIfHome] Update — anyone_home=" + payload.anyone_home +
              " phones_found=" + payload.phones_found);
     this.anyoneHome   = payload.anyone_home;
     this.phonesFound  = payload.phones_found || 0;
@@ -48,14 +53,14 @@ Module.register("MMM-ShowIfHome", {
   _applyPresence(anyoneHome) {
     const speed   = this.config.animationSpeed;
     const targets = this.config.privateModules;
-    Log.info("[MMM-ShowIfHome] " + (anyoneHome ? "SHOW" : "HIDE") +
+    Log.info("[MMM-ShowOnlyIfHome] " + (anyoneHome ? "SHOW" : "HIDE") +
              " " + JSON.stringify(targets));
     MM.getModules().enumerate((mod) => {
       if (targets.indexOf(mod.name) !== -1) {
         if (anyoneHome) {
-          mod.show(speed, { lockString: "MMM-ShowIfHome" });
+          mod.show(speed, { lockString: "MMM-ShowOnlyIfHome" });
         } else {
-          mod.hide(speed, { lockString: "MMM-ShowIfHome" });
+          mod.hide(speed, { lockString: "MMM-ShowOnlyIfHome" });
         }
       }
     });
