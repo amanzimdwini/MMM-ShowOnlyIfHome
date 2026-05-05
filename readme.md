@@ -20,12 +20,15 @@ A sleeping phone that doesn't respond to ping is caught via the ARP cache as
 a fallback — the MAC is verified there too, so a wrong device cannot
 impersonate a known phone and gain a "home" result.
 
+Also note that if you have two DIFFERENT networks you might connect to, you can check for that too - see the example config.js below
+
 ## Installation
 
 ```bash
 cd ~/MagicMirror/modules
 git clone https://github.com/amanzimdwini/MMM-ShowOnlyIfHome
 ```
+No `npm install` needed — the module uses only Node.js built-ins.
 
 ## Phone setup (required)
 
@@ -39,6 +42,7 @@ device on each connection.
 You should also assign each phone a **fixed/reserved IP** in your router's DHCP
 settings so its address never changes.
 
+
 ## Configuration
 
 Add to `config/config.js`:
@@ -51,11 +55,13 @@ Add to `config/config.js`:
 
     // Phones to check — add as many as you like
     phones: [
+    // ⚠️  Replace these MACs with real values — placeholder MACs disable MAC verification
       { name: "Alice", ip: "192.168.0.56", mac: "aa:bb:cc:dd:ee:ff" },
       { name: "Bob",   ip: "192.168.0.57", mac: "11:22:33:44:55:66" },
+      { name: "Alice", ip: "192.168.1.52", mac: "aa:bb:cc:dd:ee:ff" }
     ],
 
-    // Modules to hide when nobody is home
+// Modules to hide when nobody is home
     privateModules: ["MMM-Secret1", "MMM-Secret2"],
 
     pollInterval:   300,    // seconds between checks (default: 300 = 5 min)
@@ -69,7 +75,7 @@ Add to `config/config.js`:
 
 | Option | Default | Description |
 |---|---|---|
-| `phones` | `[]` | Array of phones to monitor. Each needs `ip`; `mac` and `name` are optional but recommended. |
+| `phones` | `[]` | Array of phones to monitor. Each entry needs `ip` and `mac` (strongly recommended for security); `name` is optional. |
 | `privateModules` | `[]` | Module names to hide when nobody is home. |
 | `pollInterval` | `300` | Seconds between network checks. |
 | `animationSpeed` | `1000` | Fade duration in milliseconds. |
